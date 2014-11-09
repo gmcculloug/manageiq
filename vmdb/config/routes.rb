@@ -124,11 +124,6 @@ Vmdb::Application.routes.draw do
   )
 
   CONTROLLER_ACTIONS = {
-    :agent => {
-      :get  => %w(get),
-      :post => %w(log)
-    },
-
     :alert                   => {
       :get  => %w(
         index
