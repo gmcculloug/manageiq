@@ -1,4 +1,17 @@
-module SharedOps
+$:.push("#{File.dirname(__FILE__)}/../../metadata/VmConfig")
+$:.push("#{File.dirname(__FILE__)}/../../metadata/MIQExtract")
+# $:.push("#{File.dirname(__FILE__)}/../../util")
+# $:.push("#{File.dirname(__FILE__)}/../../VMwareWebService")
+
+# require 'runcmd'
+require 'MIQExtract'
+require 'VmConfig'
+# require 'platform'
+# require 'SharedOps'
+# require 'MiqVimInventory'
+# require 'miq-password'
+
+class FleeceOps
   def SyncMetadata(ost)
     return if !checkArg(ost)
     begin
@@ -27,9 +40,7 @@ module SharedOps
 
         # This logic will convert either libxml or Rexml to a Rexml Element
         xmlNode << ost.xml_class.load(ret.xml.root.shallow_copy.to_xml.to_s).root
-
         items_total, items_selected = ret.xml.root.attributes["items_total"].to_i, ret.xml.root.attributes["items_selected"].to_i
-
         data = ret.xml.miqEncode
 
         # Verify that we have data to send
@@ -73,7 +84,6 @@ module SharedOps
         dataHash = ost.args[1]
         dataHash = dataHash[1..-2] if dataHash[0,1] == '"' and dataHash[-1,1] == '"'
         dataHash = YAML.load(dataHash)
-
         ost.scanData = dataHash.is_a?(Hash) ? dataHash : {}
       end
 
@@ -165,8 +175,8 @@ module SharedOps
       driver.SaveVmmetadata(vmId, xml_summary.to_xml.miqEncode, "b64,zlib,xml", ost.taskid)
       $log.info "Completed: Sending scan summary to server.  TaskId:[#{ost.taskid}]  VM:[#{vmName}]"
 
-      ost.error = "#{lastErr} for VM:[#{vmName}]" if lastErr
-    end
+        ost.error = "#{lastErr} for VM:[#{vmName}]" if lastErr
+      end
     ost.value = "OK\n"
   end
 
@@ -177,32 +187,20 @@ module SharedOps
   end
 
   def AgentJobState(ost)
-    driver = get_ws_driver(ost)
-    driver.AgentJobState(ost.taskid, ost.agent_state, ost.agent_message) if ost.taskid && ost.taskid.empty? == false
+    begin
+      driver = get_ws_driver(ost)
+      driver.AgentJobState(ost.taskid, ost.agent_state, ost.agent_message) if ost.taskid && ost.taskid.empty? == false
     rescue
-  end
-
-  def TaskUpdate(ost)
-    task_id, state, status, message = ost.args[0], ost.args[1], ost.args[2], ost.args[3]
-    driver = get_ws_driver(ost)
-    driver.TaskUpdate(task_id, state, status, message)
-  rescue
-    $log.error $!
-    $log.debug $!.backtrace.join("\n")
+    end
   end
 
   def checkArg(ost)
     if (!ost.args || (ost.args.length == 0))
       ost.error = "Command requires an argument\n"
       ost.show_help = true
-      return false
+      return(false)
     end
-    true
-  end
-
-  def getVmMdFile(vmName, sfx)
-    ext = File.extname(vmName)
-    File.join(File.dirname(vmName), File.basename(vmName, ext) + "_" + sfx)
+    return(true)
   end
 
   def get_ws_driver(ost)
