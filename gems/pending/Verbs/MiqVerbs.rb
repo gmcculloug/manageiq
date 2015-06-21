@@ -197,8 +197,7 @@ class VerbBase < MiqOptionParser::MiqCommand
 		        raise "Host is read only." if ret.config.readonly && @reqAccess != :read
 		    end
 		    if ret.remote
-		        require 'WebSvcOps'
-                @parser.forceImpl = WebSvcOps.new(ret)
+		        raise "Not Implemented"
 			else
 				# Call the policy_check method if it is defined - It will raise an error if policy fails
 				self.policy_check(ret) if self.respond_to?(:policy_check)
