@@ -5,7 +5,6 @@ require 'platform'
 
 $:.push("#{File.dirname(__FILE__)}/implementations")
 $:.push("#{File.dirname(__FILE__)}/../util")
-$:.push("#{File.dirname(__FILE__)}/../util/diag")
 
 if $log.nil?
   require 'log4r'
@@ -15,7 +14,6 @@ end
 require 'VmwareOps'
 require 'VmdbOps'
 require 'MicrosoftOps'
-require 'miqping'
 require 'miq-password'
 require 'miq-option-parser'
 
@@ -593,25 +591,6 @@ class PolicyCheckVm < VerbBase
 	def initialize
 		super('policycheckvm', false, :vmdbSwitch, :read)
 		self.short_desc = "Return the policy evaluation for the given VM"
-	end
-end
-
-class ServerPing < VerbBase
-	def initialize(ostruct)
-		super('serverping', false, :vmdbSwitch, :read)
-		self.short_desc = "Send test data to server"
-
-		ostruct.pingCfg = OpenStruct.new(Manageiq::MiqWsPing.defaults)
-		ostruct.pingCfg.host = ostruct.config.vmdbHost
-		ostruct.pingCfg.port = ostruct.config.vmdbPort
-		self.option_parser = OptionParser.new do |opt|
-			opt.on('--host=<host>', 'remote host name or ip address', String) {|val| ostruct.pingCfg.host = val}
-			opt.on('--port=<port>', 'remote listening port number', Integer) {|val| ostruct.pingCfg.port = val}
-			opt.on('--total=<number>', 'numner of ping transactions to execute', Integer) {|val| ostruct.pingCfg.total = val}
-			opt.on('--bytes=<number>', 'number of bytes to send to remote node', Integer) {|val| ostruct.pingCfg.bytes = val}
-			opt.on('--debug=[0|1]', 'enable/disable wire trace', Integer) {|val| ostruct.pingCfg.debug = val}
-			opt.on('--mode=[agent|server]', 'ping agent or server', String) {|val| ostruct.pingCfg.mode = val}
-		end
 	end
 end
 

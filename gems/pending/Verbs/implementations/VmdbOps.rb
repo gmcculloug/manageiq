@@ -1,11 +1,9 @@
 $:.push("#{File.dirname(__FILE__)}/../../blackbox")
-$:.push("#{File.dirname(__FILE__)}/../../util/diag")
 
 require 'ostruct'
 require 'rubygems'
 require 'VmBlackBox'
 require 'VmwareOps'
-require 'miqping'
 
 begin
   # Try to load through Rails autoload if running under Rails
@@ -107,10 +105,6 @@ class VmdbOps
 		dir = File.dirname(vmName)
 
 		File.join(dir, fbn + "_" + sfx)
-	end	
-	
-	def ServerPing(ost)
-		Manageiq::MiqWsPing.ping(ost.pingCfg)
 	end
 
 	def QueueAsyncResponse(ost)
