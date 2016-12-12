@@ -42,6 +42,8 @@ module ManageIQ::Providers::Vmware::InfraManager::Provision::Cloning
       :transform       => build_transform_spec
     }
 
+    clone_options[:datastore_ems_ref] = datastore_ems_ref(clone_options)
+
     # Determine if we are doing a linked-clone provision
     clone_options[:linked_clone] = get_option(:linked_clone).to_s == 'true'
     clone_options[:snapshot]     = get_selected_snapshot if clone_options[:linked_clone]
@@ -89,7 +91,7 @@ module ManageIQ::Providers::Vmware::InfraManager::Provision::Cloning
     _log.info("Destination VM Name:        [#{clone_options[:name]}]")
     _log.info("Destination Cluster:        [#{clone_options[:cluster].name} (#{clone_options[:cluster].ems_ref})]")   if clone_options[:cluster]
     _log.info("Destination Host:           [#{clone_options[:host].name} (#{clone_options[:host].ems_ref})]")         if clone_options[:host]
-    _log.info("Destination Datastore:      [#{clone_options[:datastore].name} (#{clone_options[:datastore].ems_ref})]")
+    _log.info("Destination Datastore:      [#{clone_options[:datastore].name} (#{clone_options[:datastore_ems_ref]})]")
     _log.info("Destination Folder:         [#{clone_options[:folder].name}] (#{clone_options[:folder].ems_ref})")
     _log.info("Destination Resource Pool:  [#{clone_options[:pool].name} (#{clone_options[:pool].ems_ref})]")
     _log.info("Power on after cloning:     [#{clone_options[:power_on].inspect}]")
@@ -120,7 +122,7 @@ module ManageIQ::Providers::Vmware::InfraManager::Provision::Cloning
       vim_clone_options[key] = ci.ems_ref_obj
     end
 
-    vim_clone_options[:datastore]       = datastore_ems_ref(clone_options)
+    vim_clone_options[:datastore]       = clone_options[:datastore_ems_ref]
     vim_clone_options[:storage_profile] = build_storage_profile(clone_options[:storage_profile]) unless clone_options[:storage_profile].nil?
 
     task_mor = clone_vm(vim_clone_options)
@@ -166,9 +168,7 @@ module ManageIQ::Providers::Vmware::InfraManager::Provision::Cloning
 
     # Find a host in the cluster that has this storage mounted to get the right ems_ref for this
     # datastore in the datacenter
-    datastore = HostStorage.find_by(:storage_id => clone_opts[:datastore].id, :host_id => host_ids)
-
-    datastore.try(:ems_ref)
+    HostStorage.find_by(:storage => clone_opts[:datastore], :host_id => host_ids).ems
   end
 
   def get_selected_snapshot
